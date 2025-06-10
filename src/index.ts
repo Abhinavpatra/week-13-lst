@@ -1,23 +1,103 @@
 require('dotenv').config();
 import express from 'express';
-import { burnTokens, mintTokens, sendNativeTokens } from './mintTokens';
+import {  mintTokens  } from './mintTokens';
 
 const app = express();
 
+const HELIUS_RESPONSE = {
+  "accountData": [
+    {
+      "account": "2boZeCb6whqr1XqW2bJLV4ZHyCMsVvnHP4GZJd1dDnkw",
+      "nativeBalanceChange": -1080000,
+      "tokenBalanceChanges": []
+    },
+    {
+      "account": "3vAzvartXm37aipvjG8yqfjg1EuY5qsKRrcbwhB9VGRg",
+      "nativeBalanceChange": 1000000,
+      "tokenBalanceChanges": []
+    },
+    {
+      "account": "11111111111111111111111111111111",
+      "nativeBalanceChange": 0,
+      "tokenBalanceChanges": []
+    },
+    {
+      "account": "ComputeBudget111111111111111111111111111111",
+      "nativeBalanceChange": 0,
+      "tokenBalanceChanges": []
+    }
+  ],
+  "description": "2boZeCb6whqr1XqW2bJLV4ZHyCMsVvnHP4GZJd1dDnkw transferred 0.001 SOL to 3vAzvartXm37aipvjG8yqfjg1EuY5qsKRrcbwhB9VGRg.",
+  "events": [],
+  "fee": 80000,
+  "feePayer": "2boZeCb6whqr1XqW2bJLV4ZHyCMsVvnHP4GZJd1dDnkw",
+  "instructions": [
+    {
+      "accounts": [],
+      "data": "3b1H8Rq1T3d1",
+      "innerInstructions": [],
+      "programId": "ComputeBudget111111111111111111111111111111"
+    },
+    {
+      "accounts": [],
+      "data": "LKoyXd",
+      "innerInstructions": [],
+      "programId": "ComputeBudget111111111111111111111111111111"
+    },
+    {
+      "accounts": [
+        "2boZeCb6whqr1XqW2bJLV4ZHyCMsVvnHP4GZJd1dDnkw",
+        "3vAzvartXm37aipvjG8yqfjg1EuY5qsKRrcbwhB9VGRg"
+      ],
+      "data": "3Bxs4Bc3VYuGVB19",
+      "innerInstructions": [],
+      "programId": "11111111111111111111111111111111"
+    }
+  ],
+  "nativeTransfers": [
+    {
+      "amount": 1000000,
+      "fromUserAccount": "2boZeCb6whqr1XqW2bJLV4ZHyCMsVvnHP4GZJd1dDnkw",
+      "toUserAccount": "3vAzvartXm37aipvjG8yqfjg1EuY5qsKRrcbwhB9VGRg"
+    }
+  ],
+  "signature": "5emsxM1ZSbvSUEkNUge6KBzmfhEYJqWoJgPqSeuQvEsNAW7ghfjEKjXjzy9urFHmQrqmUEjNq1NQqHFtVpcMk1Zp",
+  "slot": 386436377,
+  "source": "SYSTEM_PROGRAM",
+  "timestamp": 1749446965,
+  "tokenTransfers": [],
+  "transactionError": null,
+  "type": "TRANSFER"
+}
+
+const VAULT = "3vAzvartXm37aipvjG8yqfjg1EuY5qsKRrcbwhB9VGRg"; // Replace with your vault address
 
 app.post('/helius', async(req, res) => {
-    const fromAddress = req.body.fromAddress;
-    const toAddress = req.body.toAddress;
-    const amount = req.body.amount;
-    const type = "received_native_sol";
-
-    if (type === "received_native_sol") {
-        await mintTokens(fromAddress, toAddress, amount);
-    } else {
-        // What could go wrong here?
-        await burnTokens(fromAddress, toAddress, amount);
-        await sendNativeTokens(fromAddress, toAddress, amount);
+    // const fromAddress = req.body.fromAddress;
+    const transaction = HELIUS_RESPONSE.nativeTransfers.find(transfer => transfer.toUserAccount === VAULT);
+    if (!transaction) {
+        res.status(400).send('No valid transaction found for the vault address');
+        return;
     }
+    // const fromAddress = req.body.fromAddress 
+    // const toAddress = req.body.toAddress;
+    // const amount = req.body.amount;
+    const fromAddress = transaction.fromUserAccount;
+    const toAddress = transaction.toUserAccount;
+    const amount = transaction.amount;
+    console.log(`Processing transaction from ${fromAddress} to ${toAddress} for amount ${amount}`);
+
+
+    // const type = "received_native_sol";
+    await mintTokens(fromAddress, amount);
+    
+
+    // if (type === "received_native_sol") {
+    // } else {
+    //     // What could go wrong here?
+    //     await burnTokens(fromAddress, toAddress, amount);
+    //     await sendNativeTokens(fromAddress, toAddress, amount);
+    // }
 
     res.send('Transaction successful');
 });
