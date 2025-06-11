@@ -1,6 +1,6 @@
 require('dotenv').config();
 import express from 'express';
-import {  mintTokens  } from './mintTokens';
+import {  burnTokens, mintTokens, sendNativeTokens  } from './mintTokens';
 
 const app = express();
 
@@ -82,22 +82,23 @@ app.post('/helius', async(req, res) => {
     // const fromAddress = req.body.fromAddress 
     // const toAddress = req.body.toAddress;
     // const amount = req.body.amount;
+    
     const fromAddress = transaction.fromUserAccount;
     const toAddress = transaction.toUserAccount;
     const amount = transaction.amount;
     console.log(`Processing transaction from ${fromAddress} to ${toAddress} for amount ${amount}`);
 
 
-    // const type = "received_native_sol";
-    await mintTokens(fromAddress, amount);
-    
+    var type = "received_native_sol";
+    // type = "not"
 
-    // if (type === "received_native_sol") {
-    // } else {
-    //     // What could go wrong here?
-    //     await burnTokens(fromAddress, toAddress, amount);
-    //     await sendNativeTokens(fromAddress, toAddress, amount);
-    // }
+    if (type === "received_native_sol") {
+          await mintTokens(fromAddress, amount);
+    } else {
+        // What could go wrong here?
+        await burnTokens(amount);
+        await sendNativeTokens(fromAddress, amount);
+    }
 
     res.send('Transaction successful');
 });

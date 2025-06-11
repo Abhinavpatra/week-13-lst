@@ -96,14 +96,16 @@ app.post('/helius', (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     const toAddress = transaction.toUserAccount;
     const amount = transaction.amount;
     console.log(`Processing transaction from ${fromAddress} to ${toAddress} for amount ${amount}`);
-    // const type = "received_native_sol";
-    yield (0, mintTokens_1.mintTokens)(fromAddress, amount);
-    // if (type === "received_native_sol") {
-    // } else {
-    //     // What could go wrong here?
-    //     await burnTokens(fromAddress, toAddress, amount);
-    //     await sendNativeTokens(fromAddress, toAddress, amount);
-    // }
+    var type = "received_native_sol";
+    // type = "not"
+    if (type === "received_native_sol") {
+        yield (0, mintTokens_1.mintTokens)(fromAddress, amount);
+    }
+    else {
+        // What could go wrong here?
+        yield (0, mintTokens_1.burnTokens)(amount);
+        yield (0, mintTokens_1.sendNativeTokens)(fromAddress, amount);
+    }
     res.send('Transaction successful');
 }));
 app.listen(3000, () => {
